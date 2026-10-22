@@ -1,2 +1,12 @@
-# MemoraAI
-MemoraAI is AI Driven Cognitive &amp; Safety Assistance System for Alzheimer's Patient. "When Memory fades,guidance remains." 
+# MemoraAI – Caregiver Dashboard 
+
+## Run
+    npm install
+    npm run dev        # http://localhost:5173
+
+Demo login: caregiver@memoraai.demo / Memora@123
+
+## Build
+    npm run build && npm run preview
+
+
