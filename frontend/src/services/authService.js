@@ -14,13 +14,13 @@ export const authService = {
   async signIn(email, password) {
     await wait(900);
     if (email.toLowerCase() === DEMO.email && password === DEMO.password) {
-      return { email, name: "Demo Caregiver" };
+      return { email, name: "Demo Caregiver", patient: "Asha" };
     }
     throw { code: "auth/invalid-credential" };
   },
-  async register({ name, email }) {
+  async register({ name, email, patient }) {
     await wait(1000);
-    return { email, name };
+    return { email, name, patient };
   },
   async resetPassword() {
     await wait(800);

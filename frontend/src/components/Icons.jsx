@@ -9,3 +9,8 @@ export const PinIcon = () => (<Svg><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4
 export const UserIcon = () => (<Svg><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></Svg>);
 export const PillIcon = () => (<Svg><g transform="rotate(-35 12 12)"><rect x="3" y="9" width="18" height="6" rx="3" /><path d="M9 9l6 6" /></g></Svg>);
 export const CheckIcon = () => (<Svg size={28}><path d="M5 12l5 5L20 7" /></Svg>);
+export const GridIcon = () => (<Svg><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></Svg>);
+export const BellIcon = () => (<Svg><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></Svg>);
+export const ChartIcon = () => (<Svg><path d="M3 3v18h18" /><path d="M7 15l4-5 3 3 5-7" /></Svg>);
+export const LogoutIcon = () => (<Svg><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></Svg>);
+export const BatteryIcon = () => (<Svg><rect x="2" y="7" width="17" height="10" rx="2" /><path d="M22 11v2" /></Svg>);

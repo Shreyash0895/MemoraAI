@@ -31,7 +31,7 @@ export default function Register() {
     if (Object.keys(next).length) return;
 
     setBusy(true);
-    await register({ name: form.name.trim(), email: form.email.trim() });
+    await register({ name: form.name.trim(), email: form.email.trim(), patient: form.patient.trim() });
     navigate("/dashboard");
   }
 
