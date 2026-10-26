@@ -1,0 +1,21 @@
+services:
+  api:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (copy .env.example to .env)}
+      SEED_DEMO: ${SEED_DEMO:-true}
+      COOKIE_SECURE: "false"   # set to "true" once the site is served over HTTPS
+    volumes:
+      - memoraai-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  memoraai-data:

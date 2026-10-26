@@ -55,15 +55,19 @@ export default function SignIn() {
       await login(email.trim(), password);
       storage.set("memora.email", remember ? email.trim() : "");
       navigate("/dashboard");
-    } catch {
-      const count = fails + 1;
-      setFails(count);
-      if (count >= MAX_ATTEMPTS) {
-        setLockedUntil(Date.now() + LOCK_MS);
-        setNow(Date.now());
+    } catch (err) {
+      if (err.status === 401) {
+        const count = fails + 1;
+        setFails(count);
+        if (count >= MAX_ATTEMPTS) {
+          setLockedUntil(Date.now() + LOCK_MS);
+          setNow(Date.now());
+        } else {
+          const left = MAX_ATTEMPTS - count;
+          setFormError(`The email or password is incorrect. ${left} ${left === 1 ? "attempt" : "attempts"} left before sign-in pauses.`);
+        }
       } else {
-        const left = MAX_ATTEMPTS - count;
-        setFormError(`The email or password is incorrect. ${left} ${left === 1 ? "attempt" : "attempts"} left before sign-in pauses.`);
+        setFormError(err.message || "Something went wrong. Please try again.");
       }
       setBusy(false);
     }

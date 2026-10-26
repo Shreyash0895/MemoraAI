@@ -11,6 +11,7 @@ import Alerts from "./pages/dashboard/Alerts.jsx";
 import Medicines from "./pages/dashboard/Medicines.jsx";
 import Location from "./pages/dashboard/Location.jsx";
 import Analytics from "./pages/dashboard/Analytics.jsx";
+import Settings from "./pages/dashboard/Settings.jsx";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="medicines" element={<Medicines />} />
         <Route path="location" element={<Location />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

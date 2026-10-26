@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useData } from "../../context/DataContext.jsx";
-import { GridIcon, BellIcon, PillIcon, PinIcon, ChartIcon, LogoutIcon, BatteryIcon } from "../Icons.jsx";
+import { GridIcon, BellIcon, PillIcon, PinIcon, ChartIcon, LogoutIcon, BatteryIcon, GearIcon } from "../Icons.jsx";
 
 const NAV = [
   { to: "/dashboard", label: "Overview", icon: <GridIcon />, end: true },
@@ -10,6 +10,7 @@ const NAV = [
   { to: "/dashboard/medicines", label: "Medicines", icon: <PillIcon /> },
   { to: "/dashboard/location", label: "Location", icon: <PinIcon /> },
   { to: "/dashboard/analytics", label: "Analytics", icon: <ChartIcon /> },
+  { to: "/dashboard/settings", label: "Settings", icon: <GearIcon /> },
 ];
 
 export default function DashboardLayout() {
@@ -52,9 +53,9 @@ export default function DashboardLayout() {
             </div>
           </div>
           <div className="top-right">
-            <span className="chip"><BatteryIcon />{battery}%</span>
+            <span className="chip"><BatteryIcon />{battery == null ? "—" : `${battery}%`}</span>
             <span className="chip user">{user.name}</span>
-            <button className="dbtn" onClick={() => { logout(); navigate("/login"); }}><LogoutIcon />Sign out</button>
+            <button className="dbtn" onClick={async () => { await logout(); navigate("/login"); }}><LogoutIcon />Sign out</button>
           </div>
         </header>
         <main className="content"><Outlet /></main>
@@ -64,7 +65,7 @@ export default function DashboardLayout() {
         <div className={`toast ${toast.severity}`} role="alert">
           <div><strong>{toast.title}</strong><p>{toast.detail}</p></div>
           <div className="toast-actions">
-            <button className="dbtn primary" onClick={() => { dismissToast(); navigate("/dashboard/alerts"); }}>View alert</button>
+            {toast.kind !== "error" && <button className="dbtn primary" onClick={() => { dismissToast(); navigate("/dashboard/alerts"); }}>View alert</button>}
             <button className="dbtn" onClick={dismissToast}>Dismiss</button>
           </div>
         </div>

@@ -31,8 +31,13 @@ export default function Register() {
     if (Object.keys(next).length) return;
 
     setBusy(true);
-    await register({ name: form.name.trim(), email: form.email.trim(), patient: form.patient.trim() });
-    navigate("/dashboard");
+    try {
+      await register({ name: form.name.trim(), email: form.email.trim(), patient: form.patient.trim(), password: form.password });
+      navigate("/dashboard");
+    } catch (err) {
+      setErrors(err.code === "email-in-use" ? { email: err.message } : { form: err.message || "Something went wrong. Please try again." });
+      setBusy(false);
+    }
   }
 
   const textField = (id, label, key, { type = "text", autoComplete, hint } = {}) => (
@@ -73,6 +78,7 @@ export default function Register() {
         {errors.consent && <p className="err" role="alert">{errors.consent}</p>}
       </div>
 
+      {errors.form && <div className="alert" role="alert">{errors.form}</div>}
       <Button type="submit" busy={busy}>{busy ? "Creating account…" : "Create account"}</Button>
       <p className="switch">Already have an account? <Link className="link" to="/login">Sign in</Link></p>
     </form>

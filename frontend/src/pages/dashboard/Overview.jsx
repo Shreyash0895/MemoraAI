@@ -4,33 +4,32 @@ import PatientMap from "../../components/dashboard/PatientMap.jsx";
 import AlertItem from "../../components/dashboard/AlertItem.jsx";
 import Timeline from "../../components/dashboard/Timeline.jsx";
 import { useData } from "../../context/DataContext.jsx";
-import { distanceFromHome } from "../../services/dashboardService.js";
 import { todayAt } from "../../utils/format.js";
 
 export default function Overview() {
-  const { patient, pos, trail, outside, battery, alerts, openAlerts, medicines, activity } = useData();
+  const { patient, pos, trail, outside, battery, home, radius, distance, deviceConnected, alerts, openAlerts, medicines, activity } = useData();
   const taken = medicines.filter((m) => m.status === "taken").length;
   const open = alerts.filter((a) => a.status !== "resolved").slice(0, 3);
-  const dist = Math.round(distanceFromHome(pos));
+  const dist = distance;
 
   return (
     <>
       <div className="page-h">
         <h1>Good day, here’s how {patient.name} is doing</h1>
-        <p>Live status from the MemoraAI badge. Sample data for the prototype.</p>
+        <p>{deviceConnected ? "Live status from the MemoraAI badge." : "No badge connected yet. Add one in Settings, or try the demo controls on the Location page."}</p>
       </div>
 
       <div className="grid-stats">
         <StatCard label="Safety" value={outside ? "Outside" : "Safe"} tone={outside ? "bad" : "good"} hint={`${dist} m from home`} />
         <StatCard label="Open alerts" value={openAlerts} tone={openAlerts ? "warn" : "good"} hint={openAlerts ? "Need your attention" : "All clear"} />
         <StatCard label="Medicines today" value={`${taken} of ${medicines.length}`} hint="Taken so far" />
-        <StatCard label="Badge battery" value={`${battery}%`} tone={battery < 20 ? "bad" : ""} hint="Updating live" />
+        <StatCard label="Badge battery" value={battery == null ? "—" : `${battery}%`} tone={battery != null && battery < 20 ? "bad" : ""} hint={battery == null ? "No reading yet" : "From the badge"} />
       </div>
 
       <div className="cols">
         <section className="panel span-7">
           <h2>Live location <Link to="/dashboard/location">Open map</Link></h2>
-          <PatientMap pos={pos} trail={trail} outside={outside} patientName={patient.name} />
+          <PatientMap pos={pos} trail={trail} outside={outside} patientName={patient.name} home={home} radius={radius} />
         </section>
         <section className="panel span-5">
           <h2>Needs attention <Link to="/dashboard/alerts">All alerts</Link></h2>
@@ -39,6 +38,7 @@ export default function Overview() {
         </section>
         <section className="panel span-6">
           <h2>Today’s medicines <Link to="/dashboard/medicines">Manage</Link></h2>
+          {medicines.length === 0 && <p className="empty">No medicines scheduled yet. Add them on the Medicines page.</p>}
           <ul className="mini-list">
             {medicines.map((m) => (
               <li key={m.id}>

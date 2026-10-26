@@ -13,7 +13,7 @@ export default function Medicines() {
   const taken = medicines.filter((m) => m.status === "taken").length;
   const pct = medicines.length ? Math.round((taken / medicines.length) * 100) : 0;
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     const x = {};
     if (!f.name.trim()) x.name = "Enter the medicine name.";
@@ -21,8 +21,10 @@ export default function Medicines() {
     if (!f.time) x.time = "Choose a time.";
     setErr(x);
     if (Object.keys(x).length) return;
-    addMedicine({ name: f.name.trim(), dose: f.dose.trim(), time: f.time });
-    setF({ name: "", dose: "", time: "" });
+    try {
+      await addMedicine({ name: f.name.trim(), dose: f.dose.trim(), time: f.time });
+      setF({ name: "", dose: "", time: "" });
+    } catch { /* the error toast explains what went wrong */ }
   }
 
   return (
