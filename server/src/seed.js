@@ -31,3 +31,12 @@ export function seedDemoData(userId) {
   })();
   console.log("Seeded demo medicines, alerts and activity.");
 }
+
+/** Two sample family members (no photos) so the People page isn't empty for the demo account. */
+export function seedDemoPeople(userId) {
+  if (db.prepare("SELECT COUNT(*) AS c FROM people WHERE user_id = ?").get(userId).c > 0) return;
+  const add = db.prepare("INSERT INTO people (user_id, name, relationship, notes, created_at) VALUES (?, ?, ?, ?, ?)");
+  const now = Date.now();
+  add.run(userId, "Arjun", "son", "Visits every Sunday.", now);
+  add.run(userId, "Meera", "daughter", "Calls in the evening.", now);
+}

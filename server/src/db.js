@@ -87,6 +87,25 @@ db.exec(`
     PRIMARY KEY (medicine_id, day)
   );
 
+  -- Family and friends the badge should recognize
+  CREATE TABLE IF NOT EXISTS people (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name         TEXT NOT NULL,
+    relationship TEXT NOT NULL,
+    notes        TEXT NOT NULL DEFAULT '',
+    created_at   INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS person_photos (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    person_id  INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    mime       TEXT NOT NULL,
+    data       BLOB NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_people_user ON people(user_id);
+  CREATE INDEX IF NOT EXISTS idx_photos_person ON person_photos(person_id);
   CREATE INDEX IF NOT EXISTS idx_medicines_user ON medicines(user_id);
   CREATE INDEX IF NOT EXISTS idx_alerts_user    ON alerts(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_locations_user ON locations(user_id, recorded_at DESC);
