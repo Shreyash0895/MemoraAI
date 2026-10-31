@@ -3,6 +3,7 @@ import { api } from "../../services/api.js";
 import { prepareImage } from "../../utils/image.js";
 
 const MAX_PHOTOS = 5;
+const STATUS_LABEL = { pending: "Checking", noface: "No face", multiface: "Several faces" };
 const RELATIONS = ["Son", "Daughter", "Husband", "Wife", "Grandson", "Granddaughter", "Brother", "Sister", "Friend", "Neighbour", "Caregiver", "Doctor"];
 
 /** Add or edit one person. `person` is null when adding. */
@@ -10,7 +11,7 @@ export default function PersonForm({ person, onSaved, onCancel, onChanged }) {
   const [name, setName] = useState(person?.name ?? "");
   const [relationship, setRelationship] = useState(person?.relationship ?? "");
   const [notes, setNotes] = useState(person?.notes ?? "");
-  const [photos, setPhotos] = useState(person?.photos ?? []); // saved photo ids
+  const [photos, setPhotos] = useState(person?.photos ?? []); // saved photos: { id, status }
   const [adds, setAdds] = useState([]);                       // new photos: { key, blob, url }
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -54,7 +55,7 @@ export default function PersonForm({ person, onSaved, onCancel, onChanged }) {
   async function removeSaved(photoId) {
     try {
       await api.delete(`/people/${person.id}/photos/${photoId}`);
-      setPhotos((p) => p.filter((id) => id !== photoId));
+      setPhotos((p) => p.filter((ph) => ph.id !== photoId));
       onChanged();
     } catch (err) { setPhotoMsg(err.message); }
   }
@@ -81,7 +82,7 @@ export default function PersonForm({ person, onSaved, onCancel, onChanged }) {
       for (let i = 0; i < adds.length; i++) {
         setProgress(`Uploading photo ${i + 1} of ${adds.length}…`);
         try { await api.upload(`/people/${saved.id}/photos`, adds[i].blob); }
-        catch (err) { failures.push(err.message || "A photo couldn’t be uploaded."); }
+        catch (err) { failures.push(`Photo ${i + 1}: ${err.message || "couldn’t be uploaded."}`); }
       }
       onSaved(failures, values.name);
     } catch (err) {
@@ -124,13 +125,14 @@ export default function PersonForm({ person, onSaved, onCancel, onChanged }) {
 
         <div className="field">
           <label htmlFor="p-photos">Photos ({total} of {MAX_PHOTOS})</label>
-          <p className="hint top0">Add 3 to 5 clear photos facing the camera, in good light. More photos make recognition more reliable.</p>
+          <p className="hint top0">Add 3 to 5 clear photos of just this person, facing the camera, in good light. Each photo is checked for exactly one clear face.</p>
           {total > 0 && (
             <ul className="thumbs">
-              {photos.map((id) => (
-                <li key={id}>
-                  <img src={`/api/people/${person.id}/photos/${id}`} alt="Saved photo" />
-                  <button type="button" className="thumb-x" onClick={() => removeSaved(id)} aria-label="Remove this photo">×</button>
+              {photos.map((ph) => (
+                <li key={ph.id}>
+                  <img src={`/api/people/${person.id}/photos/${ph.id}`} alt="Saved photo" />
+                  {STATUS_LABEL[ph.status] && <span className={`thumb-tag ${ph.status}`}>{STATUS_LABEL[ph.status]}</span>}
+                  <button type="button" className="thumb-x" onClick={() => removeSaved(ph.id)} aria-label="Remove this photo">×</button>
                 </li>
               ))}
               {adds.map((a) => (

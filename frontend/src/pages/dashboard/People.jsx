@@ -3,6 +3,24 @@ import { api } from "../../services/api.js";
 import { useData } from "../../context/DataContext.jsx";
 import PersonAvatar from "../../components/dashboard/PersonAvatar.jsx";
 import PersonForm from "../../components/dashboard/PersonForm.jsx";
+import RecognitionTest from "../../components/dashboard/RecognitionTest.jsx";
+
+function PhotoSummary({ photos }) {
+  const ok = photos.filter((ph) => ph.status === "ok").length;
+  const pending = photos.filter((ph) => ph.status === "pending").length;
+  const bad = photos.length - ok - pending;
+  if (photos.length === 0) return <small className="warn">No photos yet, so this person can’t be recognized.</small>;
+  if (ok === 0 && pending > 0) return <small>Checking {pending === 1 ? "the photo" : "the photos"}…</small>;
+  if (ok === 0) return <small className="warn">No usable photo. Edit to replace {bad === 1 ? "it" : "them"} with a clear, front-facing photo.</small>;
+  return (
+    <small>
+      {ok} usable {ok === 1 ? "photo" : "photos"}
+      {pending > 0 && ` · ${pending} being checked`}
+      {bad > 0 && <span className="warn"> · {bad} without a clear face</span>}
+      {ok < 3 && <span className="muted"> · 3 or more works best</span>}
+    </small>
+  );
+}
 
 export default function People() {
   const { patient } = useData();
@@ -10,12 +28,28 @@ export default function People() {
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(null); // null | "new" | a person
   const [notice, setNotice] = useState("");
+  const [face, setFace] = useState({ available: true, threshold: 0.45 });
 
   const load = useCallback(async () => {
     try { setPeople(await api.get("/people")); setError(""); }
     catch (e) { setError(e.message || "Couldn’t load people."); }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  // Photos still being checked: look again shortly so the status updates by itself
+  useEffect(() => {
+    if (!people || !people.some((p) => p.photos.some((ph) => ph.status === "pending"))) return undefined;
+    const t = setTimeout(load, 5000);
+    return () => clearTimeout(t);
+  }, [people, load]);
+
+  // Is the face service running? Checked on load and every 30 s
+  useEffect(() => {
+    const check = () => api.get("/people/face-status").then(setFace).catch(() => {});
+    check();
+    const t = setInterval(check, 30000);
+    return () => clearInterval(t);
+  }, []);
 
   async function remove(p) {
     if (!window.confirm(`Remove ${p.name}? Their photos will be deleted too.`)) return;
@@ -46,6 +80,12 @@ export default function People() {
         <span className="muted">{people ? `${people.length} ${people.length === 1 ? "person" : "people"}` : ""}</span>
         {!editing && <button className="dbtn primary" onClick={() => { setNotice(""); setEditing("new"); }}>Add a person</button>}
       </div>
+
+      {!face.available && (
+        <div className="notice warnbox" role="status">
+          <span>The face service isn’t running right now. You can still add people and photos. Photos are checked automatically as soon as it starts.</span>
+        </div>
+      )}
 
       {notice && (
         <div className="notice" role="status">
@@ -84,9 +124,7 @@ export default function People() {
                 <strong>{p.name}</strong>
                 <span className="rel">{p.relationship}</span>
                 {p.notes && <p>{p.notes}</p>}
-                {p.photos.length === 0
-                  ? <small className="warn">No photos yet, so this person can’t be recognized.</small>
-                  : <small>{p.photos.length} {p.photos.length === 1 ? "photo" : "photos"}</small>}
+                <PhotoSummary photos={p.photos} />
               </div>
               <div className="person-actions">
                 <button className="dbtn" onClick={() => { setNotice(""); setEditing(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</button>
@@ -96,6 +134,8 @@ export default function People() {
           ))}
         </ul>
       )}
+
+      <RecognitionTest available={face.available} hasPeople={!!people && people.some((ph) => ph.photos.some((x) => x.status === "ok"))} />
     </>
   );
 }

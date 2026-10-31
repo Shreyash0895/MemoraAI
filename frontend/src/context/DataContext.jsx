@@ -147,6 +147,7 @@ export function DataProvider({ children }) {
     deviceConnected: snap.device.lastSeen != null && Date.now() - snap.device.lastSeen < CONNECTED_MS,
     alerts: snap.alerts,
     activity: snap.activity,
+    lastRecognition: snap.lastRecognition ?? null,
     // a medicine counts as taken if it was marked taken today
     medicines: snap.medicines.map((m) => ({ ...m, status: sameDay(m.takenAt) ? "taken" : "pending" })),
     openAlerts: snap.alerts.filter((a) => a.status !== "resolved").length,

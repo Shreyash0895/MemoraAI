@@ -4,10 +4,10 @@ import PatientMap from "../../components/dashboard/PatientMap.jsx";
 import AlertItem from "../../components/dashboard/AlertItem.jsx";
 import Timeline from "../../components/dashboard/Timeline.jsx";
 import { useData } from "../../context/DataContext.jsx";
-import { todayAt } from "../../utils/format.js";
+import { timeAgo, todayAt } from "../../utils/format.js";
 
 export default function Overview() {
-  const { patient, pos, trail, outside, battery, home, radius, distance, deviceConnected, alerts, openAlerts, medicines, activity } = useData();
+  const { patient, pos, trail, outside, battery, home, radius, distance, deviceConnected, alerts, openAlerts, medicines, activity, lastRecognition } = useData();
   const taken = medicines.filter((m) => m.status === "taken").length;
   const open = alerts.filter((a) => a.status !== "resolved").slice(0, 3);
   const dist = distance;
@@ -23,6 +23,7 @@ export default function Overview() {
         <StatCard label="Safety" value={outside ? "Outside" : "Safe"} tone={outside ? "bad" : "good"} hint={`${dist} m from home`} />
         <StatCard label="Open alerts" value={openAlerts} tone={openAlerts ? "warn" : "good"} hint={openAlerts ? "Need your attention" : "All clear"} />
         <StatCard label="Medicines today" value={`${taken} of ${medicines.length}`} hint="Taken so far" />
+        <StatCard label="Last recognized" value={lastRecognition ? lastRecognition.name : "—"} hint={lastRecognition ? `${lastRecognition.relationship} · ${timeAgo(lastRecognition.at)}` : "No one yet"} />
         <StatCard label="Badge battery" value={battery == null ? "—" : `${battery}%`} tone={battery != null && battery < 20 ? "bad" : ""} hint={battery == null ? "No reading yet" : "From the badge"} />
       </div>
 
