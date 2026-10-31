@@ -8,6 +8,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (copy .env.example to .env)}
       SEED_DEMO: ${SEED_DEMO:-true}
       COOKIE_SECURE: "false"   # set to "true" once the site is served over HTTPS
+      FACE_URL: http://face:8000
+      MATCH_THRESHOLD: ${MATCH_THRESHOLD:-0.45}
     volumes:
       - memoraai-data:/data
     restart: unless-stopped
@@ -16,6 +18,19 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+
+  # Face detection and recognition. Only reachable by the API (and by you on localhost for debugging).
+  face:
+    build: ./face
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   memoraai-data:
