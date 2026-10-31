@@ -3,7 +3,11 @@ import { Router } from "express";
 import crypto from "node:crypto";
 import rateLimit from "express-rate-limit";
 import { db } from "./db.js";
+import express from "express";
 import { createAlert, getSettings, logActivity, processBattery, processTelemetry, raiseSOS } from "./core.js";
+import { identify, recordRecognition } from "./recognition.js";
+import { sniffImage } from "./peopleStore.js";
+import { HttpError } from "./errors.js";
 
 export const hashKey = (key) => crypto.createHash("sha256").update(key).digest("hex");
 
@@ -85,4 +89,15 @@ deviceRouter.get("/device/schedule", (req, res) => {
     timezone: getSettings(uid).timezone,
     medicines: db.prepare("SELECT id, name, dose, time FROM medicines WHERE user_id = ? ORDER BY time, id").all(uid),
   });
+});
+
+// A camera frame as raw JPEG/PNG bytes. Replies with who it is and what the badge should say.
+const frameParser = express.raw({ type: ["image/jpeg", "image/png"], limit: "2mb" });
+deviceRouter.post("/device/recognize", frameParser, async (req, res, next) => {
+  try {
+    if (!Buffer.isBuffer(req.body) || !sniffImage(req.body))
+      throw new HttpError(415, "Send the frame as image/jpeg or image/png.", "unsupported");
+    const result = await identify(req.deviceUserId, req.body);
+    res.json(recordRecognition(req.deviceUserId, result));
+  } catch (e) { next(e); }
 });

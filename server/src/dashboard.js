@@ -40,6 +40,10 @@ dashboardRouter.get("/dashboard", (req, res) => {
   res.json({
     settings: { homeLat: s.home_lat, homeLng: s.home_lng, radiusM: s.radius_m, timezone: s.timezone },
     outside: !!s.outside,
+    lastRecognition: db
+      .prepare(`SELECT person_id AS personId, name, relationship, created_at AS at, score
+                FROM recognitions WHERE user_id = ? AND status = 'match' ORDER BY created_at DESC, id DESC LIMIT 1`)
+      .get(uid) ?? null,
     device: dev
       ? { hasKey: true, keyHint: dev.key_hint, lastSeen: dev.last_seen, battery: dev.battery }
       : { hasKey: false, keyHint: null, lastSeen: null, battery: null },

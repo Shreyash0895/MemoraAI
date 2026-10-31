@@ -1,6 +1,7 @@
 /* Background check (every minute): raises one "Missed medicine" alert per dose per day. */
 import { db } from "./db.js";
 import { createAlert, logActivity } from "./core.js";
+import { backfillEmbeddings } from "./recognition.js";
 
 const GRACE_MIN = 30; // how long after the scheduled time before a dose counts as missed
 
@@ -46,4 +47,9 @@ export function startMonitor() {
   const safeRun = () => { try { runMonitor(); } catch (e) { console.error("monitor error", e); } };
   setTimeout(safeRun, 5000);
   setInterval(safeRun, 60 * 1000);
+
+  // Check photos that were saved while the face service was down
+  const safeBackfill = () => backfillEmbeddings().catch((e) => console.error("backfill error", e));
+  setTimeout(safeBackfill, 10000);
+  setInterval(safeBackfill, 60 * 1000);
 }

@@ -101,16 +101,35 @@ db.exec(`
     person_id  INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
     mime       TEXT NOT NULL,
     data       BLOB NOT NULL,
+    face_status TEXT NOT NULL DEFAULT 'pending', -- pending | ok | noface | multiface
+    embedding   BLOB,                            -- 128 float32 numbers (512 bytes) when status is ok
     created_at INTEGER NOT NULL
+  );
+  -- Every face the badge recognized (or failed to), used for the timeline and analytics
+  CREATE TABLE IF NOT EXISTS recognitions (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    person_id    INTEGER REFERENCES people(id) ON DELETE SET NULL,
+    name         TEXT NOT NULL DEFAULT '',
+    relationship TEXT NOT NULL DEFAULT '',
+    status       TEXT NOT NULL,                  -- match | unknown | unsure
+    score        REAL,
+    created_at   INTEGER NOT NULL
   );
 
   CREATE INDEX IF NOT EXISTS idx_people_user ON people(user_id);
   CREATE INDEX IF NOT EXISTS idx_photos_person ON person_photos(person_id);
+  CREATE INDEX IF NOT EXISTS idx_recog_user ON recognitions(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_medicines_user ON medicines(user_id);
   CREATE INDEX IF NOT EXISTS idx_alerts_user    ON alerts(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_locations_user ON locations(user_id, recorded_at DESC);
   CREATE INDEX IF NOT EXISTS idx_activity_user  ON activity(user_id, created_at DESC);
 `);
+
+// Databases created before face recognition need the new photo columns
+const photoCols = db.prepare("PRAGMA table_info(person_photos)").all().map((c) => c.name);
+if (!photoCols.includes("face_status")) db.exec("ALTER TABLE person_photos ADD COLUMN face_status TEXT NOT NULL DEFAULT 'pending'");
+if (!photoCols.includes("embedding")) db.exec("ALTER TABLE person_photos ADD COLUMN embedding BLOB");
 
 export const publicUser = (row) => ({
   id: row.id,

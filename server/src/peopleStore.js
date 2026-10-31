@@ -37,19 +37,19 @@ function ownPerson(userId, id) {
   return row;
 }
 
-const photoIds = (personId) =>
-  db.prepare("SELECT id FROM person_photos WHERE person_id = ? ORDER BY id").all(personId).map((r) => r.id);
+const photosOf = (personId) =>
+  db.prepare("SELECT id, face_status AS status FROM person_photos WHERE person_id = ? ORDER BY id").all(personId);
 
 export function listPeople(userId) {
   const people = db
     .prepare("SELECT id, name, relationship, notes FROM people WHERE user_id = ? ORDER BY name COLLATE NOCASE, id")
     .all(userId);
   const photos = db
-    .prepare(`SELECT ph.id, ph.person_id FROM person_photos ph
+    .prepare(`SELECT ph.id, ph.face_status AS status, ph.person_id FROM person_photos ph
               JOIN people p ON p.id = ph.person_id WHERE p.user_id = ? ORDER BY ph.id`)
     .all(userId);
   const byPerson = new Map(people.map((p) => [p.id, []]));
-  for (const ph of photos) byPerson.get(ph.person_id)?.push(ph.id);
+  for (const ph of photos) byPerson.get(ph.person_id)?.push({ id: ph.id, status: ph.status });
   return people.map((p) => ({ ...p, photos: byPerson.get(p.id) }));
 }
 
@@ -67,7 +67,7 @@ export function updatePerson(userId, id, input) {
   ownPerson(userId, id);
   const v = validate(input);
   db.prepare("UPDATE people SET name = ?, relationship = ?, notes = ? WHERE id = ?").run(v.name, v.relationship, v.notes, id);
-  return { id, ...v, photos: photoIds(id) };
+  return { id, ...v, photos: photosOf(id) };
 }
 
 export function deletePerson(userId, id) {
@@ -75,16 +75,26 @@ export function deletePerson(userId, id) {
   db.prepare("DELETE FROM people WHERE id = ?").run(id); // photos are removed by ON DELETE CASCADE
 }
 
-export function addPhoto(userId, personId, buf) {
+/** Cheap checks before the (slower) face analysis: ownership, image type, photo limit. */
+export function checkPhotoAllowed(userId, personId, buf) {
   ownPerson(userId, personId);
   const mime = sniffImage(buf);
   if (!mime) throw new HttpError(415, "Use a JPG, PNG or WebP photo.", "unsupported");
   if (db.prepare("SELECT COUNT(*) AS c FROM person_photos WHERE person_id = ?").get(personId).c >= LIMITS.photos)
     throw new HttpError(400, `You can add up to ${LIMITS.photos} photos per person.`);
+  return mime;
+}
+
+/** analysis = { status: "ok" | "pending", embedding: Buffer | null } from recognition.analyzePhoto */
+export function insertPhoto(personId, mime, buf, analysis) {
   const info = db
-    .prepare("INSERT INTO person_photos (person_id, mime, data, created_at) VALUES (?, ?, ?, ?)")
-    .run(personId, mime, buf, Date.now());
-  return { id: Number(info.lastInsertRowid) };
+    .prepare("INSERT INTO person_photos (person_id, mime, data, face_status, embedding, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .run(personId, mime, buf, analysis.status, analysis.embedding ?? null, Date.now());
+  return { id: Number(info.lastInsertRowid), status: analysis.status };
+}
+
+export function addPhoto(userId, personId, buf, analysis = { status: "pending", embedding: null }) {
+  return insertPhoto(personId, checkPhotoAllowed(userId, personId, buf), buf, analysis);
 }
 
 export function getPhoto(userId, personId, photoId) {
