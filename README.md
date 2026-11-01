@@ -213,5 +213,3 @@ This needs Docker Compose 2.22 or newer (`docker compose version`). Changes to `
 **Good to know:** the face service needs about 40 MB of model files, downloaded when the image is built. Face matching quality depends on photo quality, so add several clear photos per person.
 
 ---
-
-*MemoraAI: AI-Driven Cognitive Assistance System for Alzheimer's Patients. Group ECE-13, Modern College of Engineering, Pune.*
