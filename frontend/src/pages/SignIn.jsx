@@ -108,14 +108,7 @@ export default function SignIn() {
         {busy ? "Signing in…" : "Sign in"}
       </Button>
 
-      <div className="demo">
-        Prototype demo login<br />
-        <code>{DEMO.email}</code><br />
-        <code>{DEMO.password}</code><br />
-        <button type="button" className="link" onClick={() => {
-          setEmail(DEMO.email); setPassword(DEMO.password); setErrors({}); setFormError("");
-        }}>Fill demo login</button>
-      </div>
+      
 
       <p className="switch">New caregiver? <Link className="link" to="/register">Create an account</Link></p>
     </form>
