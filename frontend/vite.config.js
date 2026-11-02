@@ -5,6 +5,7 @@ const api = { "/api": { target: "http://localhost:4000", changeOrigin: true } };
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173, open: true, proxy: api },
+  // host: true lets a phone or tablet on the same Wi-Fi open the patient screen (http://<your-computer-ip>:5173/companion)
+  server: { port: 5173, open: true, host: true, proxy: api },
   preview: { proxy: api },
 });
