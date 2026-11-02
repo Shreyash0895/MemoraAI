@@ -12,6 +12,7 @@ import Medicines from "./pages/dashboard/Medicines.jsx";
 import Location from "./pages/dashboard/Location.jsx";
 import Analytics from "./pages/dashboard/Analytics.jsx";
 import Settings from "./pages/dashboard/Settings.jsx";
+import Companion from "./pages/Companion.jsx";
 import People from "./pages/dashboard/People.jsx";
 
 export default function App() {
@@ -41,6 +42,9 @@ export default function App() {
         <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
       </Route>
+
+      {/* The patient's own screen: paired with a code, no caregiver login */}
+      <Route path="/companion" element={<Companion />} />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
