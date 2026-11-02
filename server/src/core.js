@@ -11,16 +11,14 @@ const MAX_LOCATIONS = 2000; // history kept per caregiver
 const LOW_BATTERY_ON = 20;
 const LOW_BATTERY_OFF = 30;
 
-export function logActivity(userId, kind, message) {
-  const at = Date.now();
+export function logActivity(userId, kind, message, at = Date.now()) {
   const info = db
     .prepare("INSERT INTO activity (user_id, kind, text, created_at) VALUES (?, ?, ?, ?)")
     .run(userId, kind, message, at);
   return { id: Number(info.lastInsertRowid), kind, text: message, at };
 }
 
-export function createAlert(userId, { type, severity, title, detail }) {
-  const at = Date.now();
+export function createAlert(userId, { type, severity, title, detail }, at = Date.now()) {
   const info = db
     .prepare("INSERT INTO alerts (user_id, type, severity, title, detail, created_at) VALUES (?, ?, ?, ?, ?, ?)")
     .run(userId, type, severity, title, detail, at);
@@ -74,11 +72,8 @@ export function processBattery(userId, level) {
   }
 }
 
-export function raiseSOS(userId) {
-  const alert = createAlert(userId, {
-    type: "sos", severity: "critical", title: "SOS button pressed",
-    detail: "The patient pressed the emergency button on the badge.",
-  });
+export function raiseSOS(userId, detail = "The patient pressed the emergency button on the badge.") {
+  const alert = createAlert(userId, { type: "sos", severity: "critical", title: "SOS button pressed", detail });
   logActivity(userId, "warn", "SOS button pressed");
   return alert;
 }

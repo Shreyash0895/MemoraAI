@@ -148,6 +148,8 @@ export function DataProvider({ children }) {
     alerts: snap.alerts,
     activity: snap.activity,
     lastRecognition: snap.lastRecognition ?? null,
+    companion: snap.companion,
+    calm: snap.calm,
     // a medicine counts as taken if it was marked taken today
     medicines: snap.medicines.map((m) => ({ ...m, status: sameDay(m.takenAt) ? "taken" : "pending" })),
     openAlerts: snap.alerts.filter((a) => a.status !== "resolved").length,
@@ -159,6 +161,10 @@ export function DataProvider({ children }) {
     addMedicine: mutate((med) => api.post("/medicines", med), true),
     removeMedicine: mutate((id) => api.delete(`/medicines/${id}`)),
     saveSettings: mutate((values) => api.put("/settings", values), true),
+    offerCalm: mutate(() => api.post("/calm/offer"), true),
+    createPairCode: mutate(() => api.post("/pairing/code"), true),
+    removeScreen: mutate((id) => api.delete(`/pairing/screens/${id}`)),
+    saveCompanion: mutate((values) => api.put("/settings/companion", values), true),
     generateKey: mutate(() => api.post("/device/key").then((r) => r.key), true),
 
     // Demo controls (simulate a badge while the hardware isn't connected)

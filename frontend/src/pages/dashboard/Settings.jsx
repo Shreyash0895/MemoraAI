@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useData } from "../../context/DataContext.jsx";
 import { timeAgo } from "../../utils/format.js";
+import PatientScreenPanel from "../../components/dashboard/PatientScreenPanel.jsx";
 
 export default function Settings() {
   const { settings, device, deviceConnected, saveSettings, generateKey } = useData();
@@ -95,6 +96,8 @@ export default function Settings() {
             </div>
           )}
         </section>
+
+        <PatientScreenPanel />
 
         <section className="panel span-12">
           <h2>How the badge sends data</h2>

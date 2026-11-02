@@ -8,6 +8,7 @@ import { createAlert, getSettings, logActivity, processBattery, processTelemetry
 import { identify, recordRecognition } from "./recognition.js";
 import { sniffImage } from "./peopleStore.js";
 import { HttpError } from "./errors.js";
+import { calmScript, startCalm } from "./calmStore.js";
 
 export const hashKey = (key) => crypto.createHash("sha256").update(key).digest("hex");
 
@@ -100,4 +101,10 @@ deviceRouter.post("/device/recognize", frameParser, async (req, res, next) => {
     const result = await identify(req.deviceUserId, req.body);
     res.json(recordRecognition(req.deviceUserId, result));
   } catch (e) { next(e); }
+});
+
+// The badge heard distress (a "calm" button, or words like "I'm scared"). Returns a spoken breathing guide.
+deviceRouter.post("/device/distress", (req, res) => {
+  const { sessionId } = startCalm(req.deviceUserId, "badge");
+  res.status(201).json({ ok: true, sessionId, script: calmScript(req.deviceUserId) });
 });

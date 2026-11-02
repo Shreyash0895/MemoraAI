@@ -28,6 +28,7 @@ export const ALERT_TYPES = {
   medicine: "Missed medicine",
   face: "Unknown person",
   battery: "Low battery",
+  distress: "Needs comfort",
 };
 export const SEVERITIES = ["critical", "high", "medium", "low"];
 

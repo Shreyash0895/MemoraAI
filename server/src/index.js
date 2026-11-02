@@ -9,6 +9,7 @@ import { deviceRouter } from "./device.js";
 import { startMonitor } from "./monitor.js";
 import { seedDemoData, seedDemoPeople } from "./seed.js";
 import { peopleRouter } from "./people.js";
+import { companionRouter } from "./companion.js";
 import { HttpError } from "./errors.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
@@ -40,6 +41,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", dashboardRouter);
 app.use("/api", deviceRouter);
 app.use("/api", peopleRouter);
+app.use("/api", companionRouter);
 app.use("/api", (_req, res) => res.status(404).json({ code: "not-found", message: "Not found." }));
 
 app.use((err, _req, res, _next) => {

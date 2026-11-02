@@ -5,6 +5,8 @@ import { requireAuth } from "./auth.js";
 import { getSettings, logActivity, processTelemetry, raiseSOS } from "./core.js";
 import { distanceMeters } from "./geo.js";
 import { hashKey } from "./device.js";
+import { getCompanionSettings } from "./companionStore.js";
+import { getCalmSummary } from "./calmStore.js";
 
 const STATUSES = ["new", "acknowledged", "resolved"];
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -40,6 +42,8 @@ dashboardRouter.get("/dashboard", (req, res) => {
   res.json({
     settings: { homeLat: s.home_lat, homeLng: s.home_lng, radiusM: s.radius_m, timezone: s.timezone },
     outside: !!s.outside,
+    companion: getCompanionSettings(uid),
+    calm: getCalmSummary(uid),
     lastRecognition: db
       .prepare(`SELECT person_id AS personId, name, relationship, created_at AS at, score
                 FROM recognitions WHERE user_id = ? AND status = 'match' ORDER BY created_at DESC, id DESC LIMIT 1`)

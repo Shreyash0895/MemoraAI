@@ -120,6 +120,34 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_people_user ON people(user_id);
   CREATE INDEX IF NOT EXISTS idx_photos_person ON person_photos(person_id);
   CREATE INDEX IF NOT EXISTS idx_recog_user ON recognitions(user_id, created_at DESC);
+  -- Patient screens (companion mode) that a caregiver has paired; only a hash of each screen's token is kept
+  CREATE TABLE IF NOT EXISTS companion_sessions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL UNIQUE,
+    label      TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    last_seen  INTEGER
+  );
+  -- One short-lived pairing code per caregiver (hashed)
+  CREATE TABLE IF NOT EXISTS pair_codes (
+    user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    code_hash  TEXT NOT NULL UNIQUE,
+    expires_at INTEGER NOT NULL
+  );
+
+  -- Calming exercises the patient (or the badge) started, and how they felt afterwards
+  CREATE TABLE IF NOT EXISTS calm_sessions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    trigger    TEXT NOT NULL,          -- patient | badge
+    started_at INTEGER NOT NULL,
+    ended_at   INTEGER,
+    outcome    TEXT                    -- calmer | same | worse (null if they just closed it)
+  );
+  CREATE INDEX IF NOT EXISTS idx_calm_user ON calm_sessions(user_id, started_at DESC);
+
+  CREATE INDEX IF NOT EXISTS idx_companion_user ON companion_sessions(user_id);
   CREATE INDEX IF NOT EXISTS idx_medicines_user ON medicines(user_id);
   CREATE INDEX IF NOT EXISTS idx_alerts_user    ON alerts(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_locations_user ON locations(user_id, recorded_at DESC);
@@ -130,6 +158,22 @@ db.exec(`
 const photoCols = db.prepare("PRAGMA table_info(person_photos)").all().map((c) => c.name);
 if (!photoCols.includes("face_status")) db.exec("ALTER TABLE person_photos ADD COLUMN face_status TEXT NOT NULL DEFAULT 'pending'");
 if (!photoCols.includes("embedding")) db.exec("ALTER TABLE person_photos ADD COLUMN embedding BLOB");
+
+// Databases created before companion mode need these columns
+function addColumn(table, column, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  if (!cols.includes(column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+addColumn("settings", "caregiver_phone", "TEXT NOT NULL DEFAULT ''");
+addColumn("settings", "c_meds", "INTEGER NOT NULL DEFAULT 1");
+addColumn("settings", "c_person", "INTEGER NOT NULL DEFAULT 1");
+addColumn("settings", "c_home", "INTEGER NOT NULL DEFAULT 1");
+addColumn("settings", "c_help", "INTEGER NOT NULL DEFAULT 1");
+addColumn("settings", "c_calm", "INTEGER NOT NULL DEFAULT 1");          // "I feel worried" calming exercises
+addColumn("settings", "c_stretch", "INTEGER NOT NULL DEFAULT 0");       // seated stretches: off until the caregiver agrees
+addColumn("settings", "calm_message", "TEXT NOT NULL DEFAULT ''");      // caregiver's own comforting message
+addColumn("settings", "calm_offer_until", "INTEGER NOT NULL DEFAULT 0"); // caregiver offered an exercise remotely
+addColumn("medicine_logs", "source", "TEXT NOT NULL DEFAULT 'caregiver'"); // caregiver | patient
 
 export const publicUser = (row) => ({
   id: row.id,

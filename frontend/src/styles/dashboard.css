@@ -186,3 +186,15 @@ input[type=file]::file-selector-button{font:inherit;font-weight:600;margin-right
 .cand{list-style:none;margin:10px 0 0;padding:0}
 .cand li{display:grid;grid-template-columns:110px minmax(0,1fr) 44px;gap:12px;align-items:center;padding:6px 0}
 .cand .bar{margin:0}.cand strong{text-align:right;font-variant-numeric:tabular-nums}
+.cols.nested{margin-top:8px}
+.panel h3{font-size:.95rem;margin:0 0 10px}
+.panel h3.sub{margin-top:24px}
+.steps{margin:0 0 10px;padding-left:20px;color:var(--ink)}
+.steps li{margin:4px 0}
+.paircode{font-size:2.2rem;letter-spacing:.12em;font-weight:700}
+.screens,.optlist{list-style:none;margin:0;padding:0}
+.screens li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.screens li:first-child{border-top:0}
+.screens small,.optlist small{display:block;color:var(--muted)}
+.optlist li{padding:8px 0}
+.optlist .check{align-items:flex-start}
