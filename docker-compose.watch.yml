@@ -1,0 +1,23 @@
+# Development mode: backend code changes are copied into the running containers and the
+# service restarts automatically, so you don't have to rebuild after every change.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.watch.yml watch
+#
+# Needs Docker Compose 2.22 or newer (check with: docker compose version).
+services:
+  api:
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./server/src
+          target: /app/src
+        - action: rebuild
+          path: ./server/package.json
+  face:
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./face/app.py
+          target: /app/app.py
+        - action: rebuild
+          path: ./face/requirements.txt
